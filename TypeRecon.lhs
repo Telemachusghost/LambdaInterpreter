@@ -16,7 +16,6 @@ typesubst
 >                                   (A b)       -> if num == b then y else ty
 >                                  
 
-TODO typeIn
 
 > typeIn :: Type t -> Type t -> Bool
 > typeIn a b = case b of
@@ -28,7 +27,6 @@ TODO typeIn
 >              f              -> if (a==f) then True else False 
 
 
-TODO mgu
 
  mgu :: Type t -> Type t ->
 
