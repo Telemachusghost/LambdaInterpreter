@@ -2,7 +2,6 @@ Combined Lambda and Arith terms
 
 > module Terms where
 > import GHC.Generics (Generic)
-> import Test.QuickCheck
 > import Control.Applicative
 
  import Generic.Random --Does not work on ada
@@ -38,12 +37,12 @@ Combined Lambda and Arith terms
 
 I could still work on the testing side a lot 
 
-> instance Arbitrary (Term t) where
->     arbitrary = elements 
->                 [
->                  Succ(Z),
->                  Succ(Z),
->                  Prd(Z),
->                  IsZ(Z),
->                  Succ(Succ(Succ(Z))) 
->                 ]
+ instance Arbitrary (Term t) where
+     arbitrary = elements 
+                 [
+                  Succ(Z),
+                  Succ(Z),
+                  Prd(Z),
+                  IsZ(Z),
+                  Succ(Succ(Succ(Z))) 
+                 ]

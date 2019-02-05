@@ -1,8 +1,10 @@
 > module TypeRecon where
 > import Terms
-
+> import Control.Applicative
 
 typesubst
+
+> maybeConcat (Just a) (Just b) = Just (a ++ b) 
 
 > typeSubst ::[(Type t, Type t)]  -> (Type t) -> (Type t)
 > typeSubst [] t = t
@@ -36,12 +38,12 @@ TODO mgu
 >           (Nat,Nat)                            -> Just []
 >           (Unit,b')                            -> Just []
 >           (a',Unit)                            -> Just []
->           ((a' `Arrow` b'),(a'' `Arrow` b''))  -> let t   = if Just t  == mgu (a',a'') then t else Nothing
->                                                       t'' = if Just t' == mgu (b',b'') then t' else Nothing  
->                                                   in if t == Nothing || t'' Nothing then Nothing else Just (t ++ t')
->           ((a' `Cross` b'),(a'' `Cross` b''))  -> let Just t  = mgu (a',a'')
->                                                       Just t' = mgu (b',b'')
->                                                   in  Just (t ++ t') 
+>           ((a' `Arrow` b'),(a'' `Arrow` b''))  -> let t   = if Nothing  /= mgu (a',a'') then mgu (a',a'') else Nothing
+>                                                       t' = if Nothing /= mgu (b',b'') then mgu (b',b'') else Nothing  
+>                                                   in if t == Nothing || t' == Nothing then Nothing else maybeConcat t t'
+>           ((a' `Cross` b'),(a'' `Cross` b''))  -> let t = if Nothing  /= mgu (a',a'') then mgu (a',a'') else Nothing
+>                                                       t' = if Nothing /= mgu (b',b'') then mgu (b',b'') else Nothing
+>                                                   in if t == Nothing || t' == Nothing then Nothing else maybeConcat t t' 
 >           (a'@(A _),b')                        -> if (not (typeIn a' b')) 
 >                                                   then Just [(a',b')]
 >                                                   else (if (a' /= b') then Nothing else Just []) --Fail or Id                                       

@@ -2,7 +2,8 @@
 > import Terms
 > import Lambda
 > import TypeChecker
-> import Test.QuickCheck
+
+import Test.QuickCheck
 
 Evaluation Testing
 
@@ -10,8 +11,8 @@ Evaluation Testing
 > renameTest t = (rename t "y" "z") == (rename t "y" "z") 
 > kTest term = (eval (App (k) (term))) == Var "y"
 
-> succProp term = eval (Succ(term)) /= Succ(term)
-> succTest = quickCheck succProp
+ succProp term = eval (Succ(term)) /= Succ(term)
+ succTest = quickCheck succProp
 
 Type Checking Testing
 
