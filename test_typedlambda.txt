@@ -1,0 +1,14 @@
+If T T F
+If T (Succ(Z)) Z
+If (IsZ(Z)) Z F
+Succ(Succ(Succ(Z)))
+Succ(Succ(Prd(Succ(Z))))
+Succ(T)
+(App (Lam "x" Bool (Var "x")) (T))
+(App (Lam "x" Bool (Var "x")) (F))
+(App (Lam "x" Nat (Var "x")) (F))
+
+
+
+
+
