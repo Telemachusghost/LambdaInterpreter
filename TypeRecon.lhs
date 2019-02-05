@@ -52,4 +52,17 @@ TODO mgu
 >                                                   else (if (a' /= b') then Nothing else Just [])
 >           d                                    -> Nothing   
 
-TODO unify
+
+TODO freshvar algorithm
+
+
+
+
+
+TODO typeinference algorithm
+
+
+
+
+
+
