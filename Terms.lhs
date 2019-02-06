@@ -9,7 +9,7 @@ Combined Lambda and Arith terms
 > type Name = [Char]
 
 > data Term t = T | F | Z | If (Term t) (Term t) (Term t) | IsZ (Term t) | Prd (Term t) 
->               | Succ (Term t) | Var Name | Lam Name (Type t) (Term t) | App (Term t) (Term t)
+>               | Succ (Term t) | Var Name | Lam Name (Term t) | App (Term t) (Term t)
 >               | Let Name (Term t) (Term t) | UnitTerm | Seq (Term t) (Term t)  
 >               | Pair (Term t) (Term t) | Pair1 (Term t) (Term t) | Pair2 (Term t) (Term t)  
 >               | EmptyList | List (Term t) (Term t) | Head (Term t) | Tail (Term t) 

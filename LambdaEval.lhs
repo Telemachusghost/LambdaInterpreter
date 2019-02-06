@@ -18,7 +18,7 @@ Just a couple of utility functions
 
 > isVal :: Term t -> Bool
 > isVal t = case t of
->           Lam _ _ _ -> True
+>           Lam _ _   -> True
 >           Succ t    -> isNumerical(t)
 >           Z         -> True
 >           T         -> True
@@ -38,7 +38,7 @@ The one step evaluator
 > eval1 :: Term t -> Maybe (Term t)
 > eval1 (App t1 t2) | not(isVal t1) && not(isVar t1) = let Just t1' = eval1 t1 in Just (App(t1')(t2))
 >                   | not(isVal t2) && not(isVar t2) = let Just t2' = eval1 t2 in  Just (App(t1)(t2')) 
->                   | otherwise                      = let Lam x ty term = t1 in Just (subst (t2,x) term)
+>                   | otherwise                      = let Lam x term = t1 in Just (subst (t2,x) term)
 > eval1 _ = Nothing
 
 multi step evaluator

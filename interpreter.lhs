@@ -1,5 +1,5 @@
 > module Interpreter where
-> import TypeChecker
+> import TypeRecon
 > import Eval 
 > import Terms
 > import System.IO
@@ -39,5 +39,5 @@
 
  
 > runShow = putStrLn . show . eval . fst . head
-> typeChecking = isError . typeOf [] . fst . head
+> typeChecking = isError . typeCheck . fst . head
                                               

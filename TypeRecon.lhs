@@ -50,15 +50,63 @@ typesubst
 >                                                   else (if (a' /= b') then Nothing else Just [])
 >           d                                    -> Nothing   
 
+> typeVars [] = []
+> typeVars ((_,A name):xs) = (A name:(typeVars xs))
+> typeVars (_:xs)          = typeVars xs
 
-TODO freshvar algorithm
+ 
+> freshVar var@(A name) = (A (name ++ "'") ) 
 
+> getBind var [] = Nothing
+> getBind var ((x,binding):xs) = if var == x then Just binding else getBind var xs  
 
+> typeFromContext t ctx = case t of
+>                         t'@(Var n)     -> if getBind t' ctx == Nothing then Error else let Just t'' = getBind t' ctx in t'' 
 
+> addBinding ctx ty x = ((x,ty):ctx)  
 
+TODO typeConstraint
 
-TODO typeinference algorithm
+> typeCon t@(Var name) uvar ctx      = (ty, uvar, [])
+>                                      where ty = typeFromContext t ctx
 
+> typeCon t@(Lam name term) uvar ctx = let ctx' = addBinding ctx uvar (Var name)
+>                                          (ty2,fresh,constr) = typeCon term uvar ctx' 
+>                                      in ((Arrow uvar ty2), fresh, constr)                        
+
+> typeCon t@(App t' t'') uvar ctx    = let (ty1,var,constr1)  = typeCon t' fresh1 ctx  
+>                                          (ty2,var2,constr2) = typeCon t'' fresh2 ctx  
+>                                      in (fresh3,(freshVar fresh3),([(ty1, Arrow ty2 fresh3)] ++ constr1 ++ constr2))
+>                                      where fresh1    = freshVar uvar
+>                                            fresh2    = freshVar fresh1
+>                                            fresh3    = freshVar fresh2
+> typeCon Z uvar ctx                 = (Nat,uvar,[])
+> typeCon (Succ(t)) uvar ctx         = let (ty1, nextuvar, constr1) = typeCon t uvar ctx
+>                                      in (Nat, nextuvar, ([(ty1,Nat)] ++ constr1))
+> typeCon (Prd(t))  uvar ctx         = let (ty1, nextuvar, constr1) = typeCon t uvar ctx
+>                                      in (Nat, nextuvar, [(ty1,Nat)] ++ constr1)
+> typeCon (IsZ(t))  uvar ctx         = let (ty1, nextuvar, constr1) = typeCon t uvar ctx
+>                                      in (Bool, nextuvar, [(ty1,Nat)] ++ constr1)
+> typeCon (T)       uvar ctx         = (Bool,uvar,[])
+> typeCon (F)       uvar ctx         = (Bool,uvar,[]) 
+> typeCon (If t t' t'') uvar ctx     = let (ty1,nextuvar,constr1)  = typeCon t uvar ctx 
+>                                          (ty2,nextuvar2,constr2) = typeCon t' nextuvar ctx
+>                                          (ty3,nextuvar3,constr3) = typeCon t'' nextuvar2 ctx
+>                                          newconstr = [(ty1,Bool)] ++ [(ty2, ty3)]
+>                                      in (ty3, nextuvar3, newconstr)
+
+typeCheck runs typeCon and then mgu on the result using wrapper function
+
+ typeCheck :: Term t -> Bool
+
+> isError (Just _) = False
+> isError Nothing = True
+
+> typeCheck term    = let (_,_,constr) = (typeCon term (A "A") [])
+>                     in (typeCheck' constr)                  
+
+> typeCheck' []     = Just []
+> typeCheck' (x:xs) = if mgu x == Nothing then Nothing else typeCheck' xs 
 
 
 

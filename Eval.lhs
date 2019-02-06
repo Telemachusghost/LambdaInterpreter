@@ -36,8 +36,8 @@ This combines lambda eval with arith eval
 >                                                                                 Just (App(t1)(t2)) 
 >                                                                             else
 >                                                                                 let Just t2' = eval1 t2 in  Just (App(t1)(t2'))
->                   | otherwise                      = let Lam x ty term = t1 in Just (subst (t2,x) term)                             --Need to add type checking to prevent cases such as (Succ Z)(_)
-> eval1 (Let subName subTerm term) = let (Lam boundName ty _) = subTerm in if boundName == subName then Nothing else Just ( App (Lam subName ty term) (subTerm))
+>                   | otherwise                      = let Lam x term = t1 in Just (subst (t2,x) term)                             --Need to add type checking to prevent cases such as (Succ Z)(_)
+> eval1 (Let subName subTerm term) = let (Lam boundName _) = subTerm in if boundName == subName then Nothing else Just ( App (Lam subName term) (subTerm))
 > eval1 (Seq UnitTerm t2) = Just t2
 > eval1 (Seq t1 t2)       = let Just t1' = eval1 t1 in Just (Seq t1' t2)
 > eval1 (Pair t1 t2)      | not(isVal t1) && not(isVar t1) = let Just t1' = eval1 t1 in Just (Pair t1' t2)
@@ -57,7 +57,7 @@ This combines lambda eval with arith eval
 >                         | otherwise      = Just t
 > eval1 (Tail (List t t1))| not (isVal t1) = eval1 t
 >                         | otherwise      = Just t1
-> eval1 tm@(Fix t) | isVal t = let (Lam n ty t1) = t in Just (subst (tm,n) t1) 
+> eval1 tm@(Fix t) | isVal t = let (Lam n t1) = t in Just (subst (tm,n) t1) 
 >                  | otherwise = let Just t' = eval1 t in Just (Fix t')   
 >                                                 
 > eval1 _ = Nothing
