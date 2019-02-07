@@ -7,7 +7,6 @@
 > import System.IO.Error
 > import Text.Read
 
-> data Control = END
 
 > main :: IO ()
 > main = do
@@ -41,3 +40,4 @@
 > runShow = putStrLn . show . eval . fst . head
 > typeChecking = isError . typeCheck . fst . head
                                               
+(App (Fix (Lam "x" (If (IsZ(Var "x")) T F) )) (Z) )

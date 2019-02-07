@@ -26,10 +26,10 @@ This combines lambda eval with arith eval
 >                        Succ t  -> if (isNumerical t) then Just t else Nothing
 >                        t       -> let Just t' = eval1 t in (Just (Prd t'))
 
-> eval1 (IsZ t)     | t == Z = Just T
->                   | t == Succ(t)          = if (isNumerical t) then Just F else Nothing
->                   | (eval1 t) == Nothing  = Nothing
->                   | otherwise             = let Just t' = eval1 t in Just (IsZ t')
+> eval1 (IsZ t)    = case t of 
+>                    Z       -> Just T
+>                    Succ(_) -> Just F
+>                    t       -> let Just t' = eval1 t in Just (IsZ(t'))
 
 > eval1 (App t1 t2) | not(isVal t1) && not(isVar t1) = let Just t1' = eval1 t1 in Just (App(t1')(t2))
 >                   | not(isVal t2) && not(isVar t2) = if eval1 t2 == Nothing then 
@@ -57,8 +57,8 @@ This combines lambda eval with arith eval
 >                         | otherwise      = Just t
 > eval1 (Tail (List t t1))| not (isVal t1) = eval1 t
 >                         | otherwise      = Just t1
-> eval1 tm@(Fix t) | isVal t = let (Lam n t1) = t in Just (subst (tm,n) t1) 
->                  | otherwise = let Just t' = eval1 t in Just (Fix t')   
+> eval1 tm@(Fix t)        | isVal t = let (Lam n t1) = t in Just (subst (tm,n) t) 
+>                         | otherwise = let Just t' = eval1 t in Just (Fix t')   
 >                                                 
 > eval1 _ = Nothing
 
@@ -67,3 +67,7 @@ This combines lambda eval with arith eval
 > eval :: Term t -> Term t
 > eval t | (eval1 t) == Nothing = t
 >        | otherwise = let Just t1 = (eval1 t) in eval t1  
+
+
+(App (Fix (Lam "f" ( Lam "x" (If (IsZ(Var "x")) T (If (IsZ(Prd(Var "x"))) F (App (Var "f") (Prd(Prd(Var "x"))) )))))) (Succ(Z)))
+

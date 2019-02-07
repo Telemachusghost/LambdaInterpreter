@@ -20,9 +20,17 @@ function that produces a set of free variables in Term t
 >                            (App (lamterm1) (lamterm2)) -> Set.union (fv (Lam (var) lamterm1)) (fv (Lam (var)  lamterm2))
 >                            Var var1                  -> if var /= var1 then Set.singleton var1 else Set.empty
 >                            (Lam (var1) (term1))      -> Set.intersection (fv (Lam (var) (term1))) (fv (Lam (var1)  (term1)))
+>                            If t t1 t2                -> Set.intersection (Set.intersection (fv (Lam (var) t)) (fv (Lam (var) t1))) (fv (Lam var t2))
+>                            Fix t                     -> fv t
+>                            _                         -> Set.empty
 > fv lamterm = case lamterm of
 >              (App (lamterm1) (lamterm2))               -> Set.union (fv (lamterm1)) (fv (lamterm2))
+>              (Fix t)                                   -> fv t
 >              Var v                                     -> Set.singleton v                
+>              IsZ t                                     -> fv t
+>              Prd t                                     -> fv t
+>              Succ t                                    -> fv t
+>              _                                         -> Set.empty
 
 Produces the all variables by union of fv and bv
 
@@ -58,9 +66,10 @@ Need to change behaviour when variable that gets renamed is same as a variable w
 >                       App term1 term2     -> App (subst (t1,x) term1)(subst (t1,x) term2) 
 >                       Lam binder bound -> if x /= binder then 
 >                                               (if (Set.notMember binder (fv t1)) then Lam binder  (subst (t1,x) bound) else subst (t1,x) newTerm) 
->                                           else term
+>                                           else subst (t1,x) bound
 >                                           where fresh = freshy term binder
 >                                                 newTerm = rename term fresh binder
+>                       If t t' t''         -> (If (subst (t1,x) t) (subst (t1,x) t') (subst (t1,x) t''))
 >                       t                   -> t
 
 Alpha Equivalance I think this is a little bloated and could lose some weight 
