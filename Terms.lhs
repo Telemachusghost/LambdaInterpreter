@@ -13,7 +13,7 @@ Combined Lambda and Arith terms
 >               | Let Name (Term t) (Term t) | UnitTerm | Seq (Term t) (Term t)  
 >               | Pair (Term t) (Term t) | Pair1 (Term t) (Term t) | Pair2 (Term t) (Term t)  
 >               | EmptyList | List (Term t) (Term t) | Head (Term t) | Tail (Term t) 
->               | IsNil (Term t) | Fix (Term t)   deriving (Show, Eq, Read)
+>               | IsNil (Term t) | Fix (Term t)  deriving (Show, Eq, Read)
                 
 
 > data Type t = Bool | Nat | Arrow (Type t) (Type t)  | NumericalError | GuardError | AppError | ConditionalError | EmptyContextError  | Error  

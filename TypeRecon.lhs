@@ -13,11 +13,17 @@ Typing seems to be working correctly for simple things like applications, if sta
 > typeSubst f@(((A num),y):xs) ty = case ty of
 >                                   Bool        -> Bool
 >                                   Nat         -> Nat
->                                   a `Arrow` b -> typeSubst xs ((typeSubst f  a) `Arrow` (typeSubst f b)) 
+>                                   a `Arrow` b -> typeSubst xs ((typeSubst f a) `Arrow` (typeSubst f b)) 
 >                                   a `Cross` b -> typeSubst xs ((typeSubst f a)  `Cross` (typeSubst f b)) 
->                                   (A b)       -> if num == b then y else ty
->                                   
-
+>                                   (A b)       -> if num == b then y else typeSubst xs ty
+>                                   Error       -> ty
+> typeSubst f@((y,(A num)):xs) ty = case ty of
+>                                   Bool        -> Bool
+>                                   Nat         -> Nat
+>                                   a `Arrow` b -> typeSubst xs ((typeSubst f a) `Arrow` (typeSubst f b)) 
+>                                   a `Cross` b -> typeSubst xs ((typeSubst f a)  `Cross` (typeSubst f b)) 
+>                                   (A b)       -> if num == b then y else typeSubst xs ty
+>                                   Error       -> ty
 
 > typeIn :: Type t -> Type t -> Bool
 > typeIn a b = case b of
@@ -73,21 +79,35 @@ Typing seems to be working correctly for simple things like applications, if sta
 > tyId (a `Cross` b)      = (a `Cross` b)
 > tyId (a)                = a
 
+> tyId2 (Arrow t t')      = t
+> tyId2 (a `Cross` b)      = (a `Cross` b)
+> tyId2 a                 = a
+
 
 > typeCon t@(Var name) uvar ctx      = (ty, uvar, [])
 >                                      where ty = typeFromContext t ctx
 
 > typeCon t@(Lam name term) uvar ctx = let ctx' = addBinding ctx uvar (Var name)
->                                          (ty2,fresh,constr) = typeCon term uvar ctx' 
->                                      in ((Arrow uvar ty2), fresh, constr)                        
+>                                          (ty2,fresh,constr) = typeCon term (freshVar uvar) ctx' 
+>                                      in ((Arrow uvar ty2 ), fresh, constr)                        
 
-I think there is something wrong with app case because it breaks many different things
+
+I dont get how to get recursion to get typed correctly in the case of application
+
+ typeCon t'''@(App t'@(Fix (Lam f t)) t'') uvar ctx    = let (ty1,nextuvar,constr1)  = typeCon t' uvar ctx
+                                                             ctx' = addBinding ctx uvar (Var f)
+                                                             (ty2,nextuvar2,constr2) = typeCon t nextuvar ctx'  
+                                                             (ty3, nextuvar3,constr3) = typeCon t'' nextuvar2 ctx
+                                                             fresh                   = freshVar nextuvar3
+                                                             tyid                    = tyId ty2
+                                                             tyid2                   = tyId2 ty1
+                                      in (fresh, fresh,([(ty2, Arrow ty3 fresh )] ++ constr1 ++ constr2 ++ constr3))
+
 
 > typeCon t@(App t' t'') uvar ctx    = let (ty1,nextuvar,constr1)  = typeCon t' uvar ctx  
->                                          (ty2, nextuvar2,constr2) = typeCon t'' (freshVar nextuvar) ctx
->                                          fresh                   = freshVar nextuvar2
->                                          tyid                    = tyId ty1
->                                      in (fresh, fresh,([(ty1, Arrow ty2 fresh )] ++ constr1 ++ constr2))
+>                                          (ty2, nextuvar2,constr2) = typeCon t'' nextuvar ctx
+>                                          fresh                   = freshVar nextuvar2 
+>                                      in (fresh, fresh,( [(ty1, Arrow ty2 fresh)] ++ constr1 ++ constr2 ))
 
 > typeCon Z uvar ctx                 = (Nat,uvar,[])
 > typeCon (Succ(t)) uvar ctx         = let (ty1, nextuvar, constr1) = typeCon t uvar ctx
@@ -121,34 +141,43 @@ typeCheck runs typeCon and then mgu on the result using wrapper function
 
  typeCheck :: Term t -> Bool
 
-> isError (Just _) = False
-> isError Nothing = True
+Just returns if its an error or not
+
+> isError (Nothing,_) = True
+> isError (Just "Success",_) = False
+
+returns typeCtx binding
 
 > typeCtx _ [] = []
 > typeCtx t@(A name) ((A name1, var):xs) = if name == name1 then var else typeCtx t  xs
 
+Adds entry to ctx
+
 > addCtx t@(A name, var) ctx = (t:ctx)
 > addCtx t@(var,A name) ctx  = ((A name,var):ctx)  
 
-> typeCheck term    = let (_,_,constr) = (typeCon term (A "A") [])
->                     in (typeCheck' constr []) 
+typeheck with a context
+
+> typeCheck term =  let (ty,_,constr) = (typeCon term (A "A") [])
+>                   in let (a,b) = (typeCheck' constr []) in (a,(typeSubst b ty)) 
+
+typecheck without a context
 
 > typeCheck''' term    = let (_,_,constr) = (typeCon term (A "A") [])
 >                        in (typeCheck'' constr)                 
 
-> typeCheck' [] _     = Just []
+> typeCheck' [] ctx     = (Just "Success",ctx)
 > typeCheck' ((a,b):xs) ctx = let t  = typeSubst ctx a   
 >                                 t' = typeSubst ctx b
 >                                 
 >                             in if mgu (t,t') == Nothing 
->                                then Nothing 
+>                                then (Nothing,ctx) 
 >                                else if mgu (t,t') == Just [] 
 >                                     then typeCheck' xs ctx
->                                     else let Just mg = mgu (t,t') in typeCheck' xs (addCtx (head mg) ctx)
+>                                     else let Just mg = mgu (t,t') in typeCheck' xs  (mg ++ ctx)
 
 > typeCheck'' [] = Just []
 > typeCheck'' (x:xs) = if mgu x == Nothing then Nothing else typeCheck'' xs                               
-
 
 
 

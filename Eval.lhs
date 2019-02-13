@@ -59,7 +59,6 @@ This combines lambda eval with arith eval
 >                         | otherwise      = Just t1
 > eval1 tm@(Fix t)        | isVal t = let (Lam n t1) = t in Just (subst (tm,n) t) 
 >                         | otherwise = let Just t' = eval1 t in Just (Fix t')   
->                                                 
 > eval1 _ = Nothing
 
 

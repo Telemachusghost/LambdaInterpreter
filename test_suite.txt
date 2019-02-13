@@ -7,11 +7,10 @@ IsZ(Z)
 IsZ(T)
 If (Succ(Z)) T F
 If T Z T 
-(App (Lam "x" Bool (Var "x")) (T))
-(App (Lam "x" Nat (Var "x")) (Succ(Prd(Z))))
-(App (Lam "x" Bool (Var "x")) (Succ(Prd(Z))))
-(App (Lam "x" (Arrow Bool Bool) (Var "x"))  (Lam "y" Bool (Var "y"))) 
-(App (Lam "x" (Arrow Bool Bool) (Var "x"))  (Lam "y" Bool (If (IsZ(Z)) (Var "y") (T)))) 
-(App (Lam "x" (Arrow Nat Nat) (Var "x"))  (Lam "y" Nat (Succ(Prd((Prd(Succ(Z)))))))) 
-
+(App (Lam "x"  (Var "x")) (T))
+(App (Lam "x"  (Var "x")) (Succ(Prd(Z))))
+(App (Lam "x"  (Var "x")) (Succ(Prd(Z))))
+(App (Lam "x"  (Var "x"))  (Lam "y"  (Var "y"))) 
+(App (Lam "x"  (Var "x"))  (Lam "y"  (If (IsZ(Z)) (Var "y") (T)))) 
+(TYPEOF (App (Lam "x"  (Var "x"))  (Lam "y"  (Succ(Prd((Prd(Succ(Z)))))))))
 
