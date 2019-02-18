@@ -41,6 +41,7 @@ Typing seems to be working correctly for simple things like applications, if sta
 > mgu :: (Type t, Type t) -> Maybe [(Type t, Type t)]
 > mgu (a,b) = case (a,b) of
 >           (Bool,Bool)                          -> Just [] 
+>           (ListType a, ListType b)             -> if a == b then Just [] else mgu (a,b)
 >           (Nat,Nat)                            -> Just []
 >           (Unit,b')                            -> Just []
 >           (a',Unit)                            -> Just []
@@ -133,9 +134,19 @@ I dont get how to get recursion to get typed correctly in the case of applicatio
 >                                          in (ty1, nextuvar, constr)
 > typeCon (Pair2 _ t) uvar ctx       = let (ty1, nextuvar, constr) = typeCon t uvar ctx
 >                                           in (ty1, nextuvar, constr)
-> typeCon (Let term eqTerm inTerm) uvar ctx   = let (ty1, nextuvar, constr)   = typeCon eqTerm uvar ctx
->                                                   (ty2, nextuvar2, constr1) = typeCon inTerm nextuvar ctx
->                                                   in (Arrow ty1 ty2, nextuvar2, constr1 ++ constr)
+> typeCon (Let term eqTerm inTerm) uvar ctx   =  typeCon (App (Lam term inTerm) (eqTerm)) uvar ctx
+>
+> typeCon (List t1 EmptyList) uvar ctx        = let (ty1, nextuvar, constr) = typeCon t1 uvar ctx
+>                                                   in ((ListType ty1), nextuvar, constr)
+> typeCon (List t1 t2) uvar ctx               = let (ty1, nextuvar, constr) = typeCon t1 uvar ctx
+>                                                   ((ListType ty2), nextuvar2, constr2) = typeCon t2 nextuvar ctx
+>                                                   in ((ListType ty1), nextuvar, [(ty1,ty2)] ++ constr ++ constr2)
+> typeCon (Head list) uvar ctx         = let (ty1, nextuvar, constr) = typeCon list uvar ctx
+>                                            fresh = freshVar nextuvar
+>                                            fresh2 = freshVar fresh
+>                                            ListType ty1' = ty1
+>                                            in (ty1', fresh2, [(ty1 , ListType ty1')] ++ constr)
+
 
 typeCheck runs typeCon and then mgu on the result using wrapper function
 
