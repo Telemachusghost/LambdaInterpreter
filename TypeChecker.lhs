@@ -5,7 +5,8 @@
 > import Terms
 
 
-Lets start over with a new typecheck that closer resembles ch. 10 of pierce
+This is an older typechecker that uses type ascription.
+
 
 Checks if a type is an error type
 

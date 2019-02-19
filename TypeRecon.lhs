@@ -9,7 +9,9 @@ Typing seems to be working correctly for simple things like applications, if sta
 > maybeConcat (Just a) (Just b) = Just (a ++ b) 
 
 > typeSubst ::[(Type t, Type t)]  -> (Type t) -> (Type t)
+
 > typeSubst [] t = t
+
 > typeSubst f@(((A num),y):xs) ty = case ty of
 >                                   Bool        -> Bool
 >                                   Nat         -> Nat
@@ -17,6 +19,7 @@ Typing seems to be working correctly for simple things like applications, if sta
 >                                   a `Cross` b -> typeSubst xs ((typeSubst f a)  `Cross` (typeSubst f b)) 
 >                                   (A b)       -> if num == b then y else typeSubst xs ty
 >                                   Error       -> ty
+
 > typeSubst f@((y,(A num)):xs) ty = case ty of
 >                                   Bool        -> Bool
 >                                   Nat         -> Nat
@@ -74,16 +77,6 @@ Typing seems to be working correctly for simple things like applications, if sta
 
 > addBinding ctx ty x = ((x,ty):ctx)  
 
- tySubs [(a,b):xs]
-
-> tyId (Arrow t t')       = t'
-> tyId (a `Cross` b)      = (a `Cross` b)
-> tyId (a)                = a
-
-> tyId2 (Arrow t t')      = t
-> tyId2 (a `Cross` b)      = (a `Cross` b)
-> tyId2 a                 = a
-
 
 > typeCon t@(Var name) uvar ctx      = (ty, uvar, [])
 >                                      where ty = typeFromContext t ctx
@@ -93,54 +86,56 @@ Typing seems to be working correctly for simple things like applications, if sta
 >                                      in ((Arrow uvar ty2 ), fresh, constr)                        
 
 
-I dont get how to get recursion to get typed correctly in the case of application
-
- typeCon t'''@(App t'@(Fix (Lam f t)) t'') uvar ctx    = let (ty1,nextuvar,constr1)  = typeCon t' uvar ctx
-                                                             ctx' = addBinding ctx uvar (Var f)
-                                                             (ty2,nextuvar2,constr2) = typeCon t nextuvar ctx'  
-                                                             (ty3, nextuvar3,constr3) = typeCon t'' nextuvar2 ctx
-                                                             fresh                   = freshVar nextuvar3
-                                                             tyid                    = tyId ty2
-                                                             tyid2                   = tyId2 ty1
-                                      in (fresh, fresh,([(ty2, Arrow ty3 fresh )] ++ constr1 ++ constr2 ++ constr3))
-
-
 > typeCon t@(App t' t'') uvar ctx    = let (ty1,nextuvar,constr1)  = typeCon t' uvar ctx  
 >                                          (ty2, nextuvar2,constr2) = typeCon t'' nextuvar ctx
 >                                          fresh                   = freshVar nextuvar2 
 >                                      in (fresh, fresh,( [(ty1, Arrow ty2 fresh)] ++ constr1 ++ constr2 ))
 
 > typeCon Z uvar ctx                 = (Nat,uvar,[])
+
 > typeCon (Succ(t)) uvar ctx         = let (ty1, nextuvar, constr1) = typeCon t uvar ctx
 >                                      in (Nat, nextuvar, ([(ty1,Nat)] ++ constr1))
+
 > typeCon (Prd(t))  uvar ctx         = let (ty1, nextuvar, constr1) = typeCon t uvar ctx
 >                                      in (Nat, nextuvar, [(ty1,Nat)] ++ constr1)
+
 > typeCon (IsZ(t))  uvar ctx         = let (ty1, nextuvar, constr1) = typeCon t uvar ctx
 >                                      in (Bool, nextuvar, [(ty1,Nat)] ++ constr1)
+
 > typeCon (T)       uvar ctx         = (Bool,uvar,[])
+
 > typeCon (F)       uvar ctx         = (Bool,uvar,[]) 
+
 > typeCon (If t t' t'') uvar ctx     = let (ty1,nextuvar,constr1)  = typeCon t uvar ctx 
 >                                          (ty2,nextuvar2,constr2) = typeCon t' nextuvar ctx
 >                                          (ty3,nextuvar3,constr3) = typeCon t'' nextuvar2 ctx
 >                                          newconstr = [(ty1,Bool)] ++ [(ty2, ty3)]
 >                                      in (ty3, nextuvar3, newconstr ++ constr1 ++ constr2 ++ constr3)
+
 > typeCon (Fix t) uvar ctx           = let (ty1, nextuvar, constr1) = typeCon t uvar ctx
 >                                          fresh = freshVar nextuvar
 >                                      in  (fresh, fresh, [(ty1, Arrow fresh fresh )] ++ constr1)
+
 > typeCon (Pair t t') uvar ctx       = let (ty1, nextuvar, constr1)  = typeCon t uvar ctx
 >                                          (ty2, nextuvar1, constr2) = typeCon t' nextuvar ctx 
 >                                           in (ty1 `Cross` ty2, nextuvar1, constr1 ++ constr2)
+
 > typeCon (Pair1 t _) uvar ctx       = let (ty1, nextuvar, constr) = typeCon t uvar ctx
 >                                          in (ty1, nextuvar, constr)
+
 > typeCon (Pair2 _ t) uvar ctx       = let (ty1, nextuvar, constr) = typeCon t uvar ctx
 >                                           in (ty1, nextuvar, constr)
+
 > typeCon (Let term eqTerm inTerm) uvar ctx   =  typeCon (App (Lam term inTerm) (eqTerm)) uvar ctx
 >
+
 > typeCon (List t1 EmptyList) uvar ctx        = let (ty1, nextuvar, constr) = typeCon t1 uvar ctx
 >                                                   in ((ListType ty1), nextuvar, constr)
+
 > typeCon (List t1 t2) uvar ctx               = let (ty1, nextuvar, constr) = typeCon t1 uvar ctx
 >                                                   ((ListType ty2), nextuvar2, constr2) = typeCon t2 nextuvar ctx
 >                                                   in ((ListType ty1), nextuvar, [(ty1,ty2)] ++ constr ++ constr2)
+
 > typeCon (Head list) uvar ctx         = let (ty1, nextuvar, constr) = typeCon list uvar ctx
 >                                            fresh = freshVar nextuvar
 >                                            fresh2 = freshVar fresh
@@ -148,34 +143,17 @@ I dont get how to get recursion to get typed correctly in the case of applicatio
 >                                            in (ty1', fresh2, [(ty1 , ListType ty1')] ++ constr)
 
 
-typeCheck runs typeCon and then mgu on the result using wrapper function
-
- typeCheck :: Term t -> Bool
-
-Just returns if its an error or not
+Just returns if its an error or not used for type checking at interpreter
 
 > isError (Nothing,_) = True
 > isError (Just "Success",_) = False
 
-returns typeCtx binding
-
-> typeCtx _ [] = []
-> typeCtx t@(A name) ((A name1, var):xs) = if name == name1 then var else typeCtx t  xs
-
-Adds entry to ctx
-
-> addCtx t@(A name, var) ctx = (t:ctx)
-> addCtx t@(var,A name) ctx  = ((A name,var):ctx)  
-
-typeheck with a context
+typeCheck wrapper function
 
 > typeCheck term =  let (ty,_,constr) = (typeCon term (A "A") [])
->                   in let (a,b) = (typeCheck' constr []) in (a,(typeSubst b ty)) 
+>                       in let (a,b) = (typeCheck' constr []) in (a,typeSubst b $ typeSubst b ty) 
 
-typecheck without a context
-
-> typeCheck''' term    = let (_,_,constr) = (typeCon term (A "A") [])
->                        in (typeCheck'' constr)                 
+runs mgu on each constraint running typeSubst on each constraint at each step
 
 > typeCheck' [] ctx     = (Just "Success",ctx)
 > typeCheck' ((a,b):xs) ctx = let t  = typeSubst ctx a   
