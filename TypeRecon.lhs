@@ -158,7 +158,8 @@ Typing seems to be working correctly for simple things like applications, if sta
 >                                           in (ty2, nextuvar2, [(ty1,Unit)] ++ constr ++ constr2)
 
 > typeCon (TypeOf t)  uvar ctx        = (Unit, uvar, []) 
-
+> typeCon (Type t)    uvar ctx        = (Unit, uvar, [])
+> typeCon _           uvar ctx        = (Error, uvar, [])
 
 Just returns if its an error or not used for type checking at interpreter
 
