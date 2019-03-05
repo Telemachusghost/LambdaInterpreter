@@ -6,6 +6,7 @@ This combines lambda eval with arith eval
 > import Lambda (subst)
 > import ArithEval (isNumerical)
 > import LambdaEval (isVal, isVar)
+> import TypeRecon (typeCheck)
 
 > eval1 :: Term t -> Maybe (Term t)
 
@@ -67,7 +68,9 @@ This combines lambda eval with arith eval
 
 > eval1 tm@(Fix t)        | isVal t = let (Lam n t1) = t in Just (subst (tm,n) t) 
 >                         | otherwise = let Just t' = eval1 t in Just (Fix t')   
-
+> eval1 (TypeOf t)        = case typeCheck t of 
+>                               (Just "Success", ty) -> Just (Type ty)
+>                               (_, ty)              -> Just (Type Error) 
 > eval1 _ = Nothing
 
 

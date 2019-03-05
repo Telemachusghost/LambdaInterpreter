@@ -46,8 +46,8 @@ Typing seems to be working correctly for simple things like applications, if sta
 >           (Bool,Bool)                          -> Just [] 
 >           (ListType a, ListType b)             -> if a == b then Just [] else mgu (a,b)
 >           (Nat,Nat)                            -> Just []
->           (Unit,b')                            -> Just []
->           (a',Unit)                            -> Just []
+>           (Unit,b')                            -> Nothing
+>           (a',Unit)                            -> Nothing
 >           ((a' `Arrow` b'),(a'' `Arrow` b''))  -> let t   = if Nothing  /= mgu (a',a'') then mgu (a',a'') else Nothing
 >                                                       t' = if Nothing /= mgu (b',b'') then mgu (b',b'') else Nothing  
 >                                                   in if t == Nothing || t' == Nothing then Nothing else maybeConcat t t'
@@ -88,8 +88,8 @@ Typing seems to be working correctly for simple things like applications, if sta
 
 > typeCon t@(App t' t'') uvar ctx    = let (ty1,nextuvar,constr1)  = typeCon t' uvar ctx  
 >                                          (ty2, nextuvar2,constr2) = typeCon t'' nextuvar ctx
->                                          fresh                   = freshVar nextuvar2 
->                                      in (fresh, fresh,( [(ty1, Arrow ty2 fresh)] ++ constr1 ++ constr2 ))
+>                                          fresh                   = freshVar nextuvar2  
+>                                      in (fresh, fresh,( [(Arrow ty2 fresh, ty1)] ++ constr1 ++ constr2 ))
 
 > typeCon Z uvar ctx                 = (Nat,uvar,[])
 
@@ -105,6 +105,8 @@ Typing seems to be working correctly for simple things like applications, if sta
 > typeCon (T)       uvar ctx         = (Bool,uvar,[])
 
 > typeCon (F)       uvar ctx         = (Bool,uvar,[]) 
+
+> typeCon UnitTerm uvar ctx          = (Unit, uvar, [])
 
 > typeCon (If t t' t'') uvar ctx     = let (ty1,nextuvar,constr1)  = typeCon t uvar ctx 
 >                                          (ty2,nextuvar2,constr2) = typeCon t' nextuvar ctx
@@ -139,8 +141,23 @@ Typing seems to be working correctly for simple things like applications, if sta
 > typeCon (Head list) uvar ctx         = let (ty1, nextuvar, constr) = typeCon list uvar ctx
 >                                            fresh = freshVar nextuvar
 >                                            fresh2 = freshVar fresh
->                                            ListType ty1' = ty1
+>                                            ty1' = if ListType ty1' == ty1 then ListType ty1' else ty1 
 >                                            in (ty1', fresh2, [(ty1 , ListType ty1')] ++ constr)
+
+> typeCon (Tail list) uvar ctx         = let (ty1, nextuvar, constr) = typeCon list uvar ctx
+>                                            fresh = freshVar nextuvar
+>                                            fresh2 = freshVar fresh
+>                                            ty1' = if ListType ty1' == ty1 then ListType ty1' else ty1 
+>                                            in (ListType ty1', fresh2, [(ty1 , ListType ty1')] ++ constr)
+
+> typeCon (Seq UnitTerm t1) uvar ctx  = let (ty1, nextuvar, constr) = typeCon t1 uvar ctx
+>                                           in (ty1, nextuvar, constr)
+
+> typeCon (Seq t1 t2) uvar ctx        = let (ty1, nextuvar, constr)   = typeCon t1 uvar ctx
+>                                           (ty2, nextuvar2, constr2) = typeCon t2 nextuvar ctx
+>                                           in (ty2, nextuvar2, [(ty1,Unit)] ++ constr ++ constr2)
+
+> typeCon (TypeOf t)  uvar ctx        = (Unit, uvar, []) 
 
 
 Just returns if its an error or not used for type checking at interpreter

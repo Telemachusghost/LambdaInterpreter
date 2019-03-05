@@ -21,4 +21,16 @@
 > typeEvenOdd  = typeCheck (App (Fix (Lam "f" (Lam "x" (If (IsZ(Var "x")) T (If (IsZ(Prd(Var "x"))) F (App (Var "f") (Prd(Prd(Var "x")))))) ) )) Z) --Works Now!!!
 > typeEvenOdd2 = typeCheck (App (Fix (Lam "f" (Lam "x" (If (IsZ(Var "x")) T (If (IsZ(Prd(Var "x"))) F (App (Var "f") (Prd(Prd(Var "x")))))) ) )) T) --Doesnt work now!!!
 
-                                    
+> headTest = typeCheck (Head (Z)) -- Should not check
+> tailTest = typeCheck (Tail (Z)) -- Should not check
+
+> headTest2 = typeCheck (List (Succ(Z)) EmptyList) -- Nat
+> tailTest2 = typeCheck (List (Succ(Z)) (List Z EmptyList)) -- ListType nat
+
+> headTest3 = typeCheck (List (Succ(Z)) (List T EmptyList)) -- fails
+> tailTest3 = typeCheck (List (Succ(Z)) (List T EmptyList)) -- fails
+
+UNIT type TESTS
+
+> unit1 = typeCheck (Seq UnitTerm Z) -- Nat
+> unit2 = typeCheck (Seq Z Z)        -- Fail
