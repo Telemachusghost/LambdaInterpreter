@@ -15,7 +15,7 @@ Term ::= If <Term> <Term> <Term> | Succ <Term> | Prd <Term> |
          Z | T | F | Lam <Name> <Name> | Var <Name> | Pair <Term> <Term>
          | Pair1 <Term> <Term> | Pair2 <Term> <Term> | EmptyList | List <Term> <Term>
          | Head <Term> | Tail <Term> | IsNil <Term> | Fix <Term> | Type <Type> | TypeOf <Term> | Seq <Term> <Term>
-         | UnitTerm
+         | UnitTerm | Let <Name> <Term> <Term>
 
 Type ::= Nat | Bool | Arrow <Type> <Type> | Cross <Type> <Type> |  A <Name> | Unit | ListType <Type>
 
@@ -36,5 +36,7 @@ IsNil <Term> is for lists
 TypeOf <Term> is just like haskells ghci ":t" command
 
 Seq <Term> <Term> will create a sequence where Term1 needs to return a term of type Unit whereat Term2 is evaluated afterwards. (I am not sure of the use of this quite yet)
+
+Let <Name> <Term> <Term> is the same as let name = Term1 in Term2 (haskell)
 
 
